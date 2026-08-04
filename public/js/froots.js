@@ -52,7 +52,17 @@ tabs.forEach((tab) => tab.addEventListener('click', () => {
   let A = 0, B = 0;
   const R1 = 1, R2 = 2, K2 = 5;
 
-  function frame() {
+  // Throttle to ~24fps and rotate gently — a slow ambient drift, not
+  // a spin. Respect reduced-motion preference.
+  const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const speedA = calm ? 0.003 : 0.006;
+  const speedB = calm ? 0.0015 : 0.003;
+  const interval = 1000 / 24;
+  let last = 0;
+
+  function frame(now) {
+    if (now - last < interval) { requestAnimationFrame(frame); return; }
+    last = now;
     const K1 = cols * K2 * 3 / (8 * (R1 + R2));
     const zbuf = new Float32Array(cols * rows).fill(0);
     const cbuf = new Int8Array(cols * rows).fill(-1);
@@ -91,8 +101,8 @@ tabs.forEach((tab) => tab.addEventListener('click', () => {
       }
     }
 
-    A += 0.028;
-    B += 0.014;
+    A += speedA;
+    B += speedB;
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
