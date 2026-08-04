@@ -1,5 +1,6 @@
 ---
 id: connect
+sidebar_position: 2
 title: Connecting your agent
 ---
 

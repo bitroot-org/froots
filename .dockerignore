@@ -1,0 +1,10 @@
+# Host artefacts must never shadow what the image installs/builds —
+# docs/node_modules in particular would clobber the docs stage's `npm ci`.
+node_modules
+docs/node_modules
+docs/build
+docs/.docusaurus
+.git
+.github
+.env
+.DS_Store

@@ -1,6 +1,8 @@
 ---
-id: bit-graphics
+id: index
 title: bit-graphics
+slug: /
+sidebar_position: 1
 ---
 
 # bit-graphics

@@ -4,7 +4,9 @@ import { dirname, join } from "node:path";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { buildBitGraphicsServer } from "./servers/bit-graphics.mjs";
 
-const publicDir = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+const publicDir = join(rootDir, "public");
+const docsDir = join(rootDir, "docs", "build");
 
 /**
  * froots — Bitroot's hosted MCP fleet.
@@ -35,9 +37,19 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true, servers: Object.keys(REGISTRY) });
 });
 
-// Landing page + assets. /mcp/* routes are declared below; everything
+// Landing page + assets first, so `/` is the landing page and not the
+// docs site's own index. /mcp/* routes are declared below; everything
 // else falls through to the static site.
 app.use(express.static(publicDir));
+
+// Docusaurus output: fleet docs at /docs, and one section per server at
+// /<server>/docs. Built into docs/build by the Dockerfile; absent in a
+// bare `npm start`, in which case these routes simply 404.
+//
+// The site is built with trailingSlash:true, so every page is a directory
+// holding index.html — /docs 301s to /docs/ and lands on the page, which
+// is also the canonical form Docusaurus generates its own links in.
+app.use(express.static(docsDir));
 
 function authorized(req) {
   if (tokens.size === 0) return false; // no tokens configured = locked

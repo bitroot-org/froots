@@ -2,6 +2,7 @@
 id: index
 title: What is froots?
 slug: /
+sidebar_position: 1
 ---
 
 # froots 🌱
@@ -20,7 +21,7 @@ We kept building capabilities inside individual projects — image generation in
 
 | Server | Endpoint | What it does |
 |---|---|---|
-| [bit-graphics](servers/bit-graphics) | `POST /mcp/bit-graphics` | Social-media image generation (Gemini Nano Banana / OpenAI gpt-image) + image style analysis |
+| [bit-graphics](/bit-graphics/docs) | `POST /mcp/bit-graphics` | Social-media image generation (Gemini Nano Banana / OpenAI gpt-image) + image style analysis |
 
 ## Architecture
 
@@ -33,4 +34,4 @@ froots (Node + Express, one container on Dokploy)
 
 Each endpoint is a standard [MCP](https://modelcontextprotocol.io) server over streamable HTTP. Auth is a bearer token checked against the `FROOTS_TOKENS` allowlist — issue one token per person or app, revoke by removing it.
 
-Start with **[Connecting your agent →](connect)**
+Start with **[Connecting your agent →](./connect.md)**
