@@ -19,4 +19,3 @@ curl -s localhost:3000/health
 
 `src/servers/<name>.mjs` → export a builder → register in `REGISTRY` in `src/index.mjs` → document in `docs/`. Push to main; Dokploy redeploys.
 
-(Local folder note: this repo lives at `froots-mcp/` on dev machines because `froots/` is the Chrome extension project.)
