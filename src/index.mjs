@@ -1,6 +1,10 @@
 import express from "express";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { buildBitGraphicsServer } from "./servers/bit-graphics.mjs";
+
+const publicDir = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
 
 /**
  * froots — Bitroot's hosted MCP fleet.
@@ -30,6 +34,10 @@ app.use(express.json({ limit: "25mb" }));
 app.get("/health", (_req, res) => {
   res.json({ ok: true, servers: Object.keys(REGISTRY) });
 });
+
+// Landing page + assets. /mcp/* routes are declared below; everything
+// else falls through to the static site.
+app.use(express.static(publicDir));
 
 function authorized(req) {
   if (tokens.size === 0) return false; // no tokens configured = locked
