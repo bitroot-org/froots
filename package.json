@@ -1,0 +1,19 @@
+{
+  "name": "froots",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bitroot's hosted MCP servers and agent APIs — one endpoint per capability, token-gated, self-hosted on Dokploy.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "dev": "node --watch src/index.mjs"
+  },
+  "dependencies": {
+    "@google/genai": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "express": "^4.21.0",
+    "openai": "^4.85.0",
+    "zod": "^3.24.0"
+  },
+  "engines": { "node": ">=20" }
+}
