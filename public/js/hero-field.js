@@ -180,6 +180,8 @@
     }
 
     glyphPx = Math.max(6, Math.min(11, (radius / DPR) * 0.03));
+    heroLeft = box.left;
+    heroTop = box.top;
     buildSprites();
   }
 
@@ -188,7 +190,10 @@
   const HOLD = 4200;
   const MORPH = 1500;
   const CYCLE = HOLD + MORPH;
-  const FRAME = 1000 / 32; // the cloud drifts; 60fps buys nothing here
+  // The cloud drifts, so 32fps is plenty at rest — but a pointer chasing it
+  // reads as lag at that rate, so the loop opens up while it is engaged.
+  const FRAME_IDLE = 1000 / 32;
+  const FRAME_LIVE = 1000 / 60;
 
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
@@ -197,6 +202,19 @@
   let onScreen = true;
   let raf = 0;
 
+  // ─── Pointer ────────────────────────────────────────
+  // Two effects, both eased so nothing snaps: the whole cloud leans toward
+  // the cursor, and points near it are pushed aside and brightened.
+
+  let heroLeft = 0;
+  let heroTop = 0;
+  let pointerX = 0;
+  let pointerY = 0;
+  let pointerOn = false;
+  let influence = 0; // 0..1, eased toward pointerOn
+  let leanX = 0;
+  let leanY = 0;
+
   function draw(elapsed) {
     const phase = elapsed % CYCLE;
     const step = Math.floor(elapsed / CYCLE);
@@ -204,13 +222,23 @@
     const B = SHAPES[(step + 1) % SHAPES.length];
     const m = phase < HOLD ? 0 : ease((phase - HOLD) / MORPH);
 
-    const yaw = elapsed * 0.00021;
-    const pitch = Math.sin(elapsed * 0.00013) * 0.32;
+    // Ease the pointer state rather than reading it raw, so entering and
+    // leaving the hero are both gradual.
+    influence += ((pointerOn ? 1 : 0) - influence) * 0.08;
+    const wantX = pointerOn ? ((pointerX - cx) / (w || 1)) * 0.9 : 0;
+    const wantY = pointerOn ? ((pointerY - cy) / (h || 1)) * 0.7 : 0;
+    leanX += (wantX - leanX) * 0.07;
+    leanY += (wantY - leanY) * 0.07;
+
+    const yaw = elapsed * 0.00021 + leanX;
+    const pitch = Math.sin(elapsed * 0.00013) * 0.32 + leanY;
     const cyaw = Math.cos(yaw);
     const syaw = Math.sin(yaw);
     const cpit = Math.cos(pitch);
     const spit = Math.sin(pitch);
     const focal = 4;
+    const REACH = radius * 0.62;
+    const REACH2 = REACH * REACH;
 
     ctx.clearRect(0, 0, w, h);
 
@@ -231,12 +259,29 @@
       const z2 = y * spit + z1 * cpit;
 
       const persp = focal / (focal - z2);
-      const sx = cx + x1 * radius * persp;
-      const sy = cy + y1 * radius * persp;
-      if (sx < -20 || sy < -20 || sx > w + 20 || sy > h + 20) continue;
+      let sx = cx + x1 * radius * persp;
+      let sy = cy + y1 * radius * persp;
 
       const depth = (z2 + 1) / 2;
       let l = (depth * LEVELS) | 0;
+
+      // Local response, in screen space so it tracks what the eye sees
+      // rather than where the point sits in the cloud's own coordinates.
+      if (influence > 0.01) {
+        const dx = sx - pointerX;
+        const dy = sy - pointerY;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < REACH2) {
+          const d = Math.sqrt(d2) || 1;
+          const f = 1 - d / REACH;
+          const push = f * f * REACH * 0.42 * influence;
+          sx += (dx / d) * push;
+          sy += (dy / d) * push;
+          l += Math.round(f * 2.2 * influence);
+        }
+      }
+
+      if (sx < -20 || sy < -20 || sx > w + 20 || sy > h + 20) continue;
       if (l >= LEVELS) l = LEVELS - 1;
       else if (l < 0) l = 0;
       buckets[l].push(sx, sy);
@@ -255,7 +300,8 @@
     raf = requestAnimationFrame(tick);
     if (!onScreen || document.hidden) return;
     if (!start) start = now;
-    if (now - last < FRAME) return;
+    const frame = influence > 0.01 ? FRAME_LIVE : FRAME_IDLE;
+    if (now - last < frame) return;
     last = now;
     draw(now - start);
   }
@@ -283,6 +329,27 @@
     }
     raf = requestAnimationFrame(tick);
     document.addEventListener('visibilitychange', () => { last = 0; });
+
+    // Mouse only. A touch drag would yank the cloud around under the
+    // finger the user is scrolling with.
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      hero.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        // heroLeft/Top are cached and refreshed on scroll/resize — reading
+        // the rect on every move would force a layout each time.
+        pointerX = (e.clientX - heroLeft) * DPR;
+        pointerY = (e.clientY - heroTop) * DPR;
+        pointerOn = true;
+      }, { passive: true });
+
+      hero.addEventListener('pointerleave', () => { pointerOn = false; }, { passive: true });
+
+      window.addEventListener('scroll', () => {
+        const box = hero.getBoundingClientRect();
+        heroLeft = box.left;
+        heroTop = box.top;
+      }, { passive: true });
+    }
   }
 
   let resizeTimer;
