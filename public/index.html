@@ -5,63 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>froots — What Bitroot Makes, Any Agent Gets</title>
   <meta name="description" content="Bitroot's hosted MCP fleet. Every capability we build — image generation, and more — published once, reachable by any agent through one URL.">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/froots.css">
 </head>
 <body>
-  <nav class="nav">
-    <div class="nav-container">
-      <a href="/" class="nav-logo">
-        <span class="logo-bracket">[</span><span class="logo-text">bitroot</span><span class="logo-dot">.</span><span class="logo-froots">froots</span><span class="logo-bracket">]</span>
-      </a>
-      <div class="nav-links">
-        <a href="#servers" class="nav-link">servers</a>
-        <a href="#about" class="nav-link">about</a>
-        <a href="/docs" class="nav-link">docs</a>
-        <a href="https://github.com/bitroot-org/froots" class="nav-link">github</a>
-      </div>
-      <button class="mobile-menu-btn" aria-label="Toggle menu"><span></span><span></span></button>
+  <header class="topbar">
+    <span class="topbar-slot"></span>
+    <a href="/" class="wordmark">froots</a>
+    <div class="topbar-slot topbar-actions">
+      <a href="/docs/connect/" class="pill pill-solid">Get a token</a>
+      <button class="mobile-menu-btn" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span></button>
     </div>
-  </nav>
+  </header>
 
   <div class="mobile-menu">
-    <a href="#servers" class="mobile-link">servers</a>
-    <a href="#about" class="mobile-link">about</a>
-    <a href="/docs" class="mobile-link">docs</a>
-    <a href="https://github.com/bitroot-org/froots" class="mobile-link">github</a>
+    <a href="#hero" class="mobile-link">Home</a>
+    <a href="#servers" class="mobile-link">Servers</a>
+    <a href="/docs/" class="mobile-link">Docs</a>
+    <a href="https://github.com/bitroot-org/froots" class="mobile-link">GitHub</a>
   </div>
 
   <section class="hero" id="hero">
-    <div class="hero-fade"></div>
+    <nav class="railnav" aria-label="Primary">
+      <a href="#hero" class="rail-link is-current">Home</a>
+      <a href="#servers" class="rail-link">Servers</a>
+      <a href="/docs/" class="rail-link">Docs</a>
+      <a href="https://github.com/bitroot-org/froots" class="rail-link">GitHub</a>
+    </nav>
+
     <video class="hero-video" autoplay muted loop playsinline preload="metadata"
            poster="video/froots-ascii-poster.jpg" aria-hidden="true">
       <source src="video/froots-ascii.mp4" type="video/mp4">
     </video>
-    <div class="hero-bottom">
-      <div class="hero-content">
-        <div class="hero-text">
-          <h1 class="hero-title">
-            <span class="title-line">What we make,</span>
-            <span class="title-line title-accent">any agent gets_</span>
-          </h1>
-          <p class="hero-subtitle">
-            Bitroot's hosted MCP fleet. Every capability we build — published once,<br>
-            reachable by any agent through one URL. Bring a token, skip the setup.
-          </p>
-        </div>
-        <div class="hero-actions">
-          <div class="hero-ctas">
-            <a href="#servers" class="btn btn-primary"><span class="btn-text">Explore the fleet</span><span class="btn-arrow">-></span></a>
-            <a href="/docs" class="btn btn-ghost">Read the docs</a>
-          </div>
-          <div class="hero-stats">
-            <div class="stat"><span class="stat-value">1</span><span class="stat-label">live server</span></div>
-            <div class="stat-divider">/</div>
-            <div class="stat"><span class="stat-value">3</span><span class="stat-label">tools</span></div>
-            <div class="stat-divider">/</div>
-            <div class="stat"><span class="stat-value">1</span><span class="stat-label">URL each</span></div>
-          </div>
-        </div>
+
+    <div class="hero-copy">
+      <h1 class="hero-title">
+        <span class="title-line">What we make,</span>
+        <span class="title-line">any agent gets</span>
+      </h1>
+      <p class="hero-subtitle">
+        Every capability Bitroot builds, published once and reachable by any
+        agent through a single URL. Bring a token, skip the setup.
+      </p>
+      <div class="hero-ctas">
+        <a href="#servers" class="pill pill-solid">Explore the fleet</a>
+        <a href="/docs/" class="pill pill-quiet">Read the docs</a>
       </div>
     </div>
   </section>
@@ -69,11 +57,11 @@
   <section class="projects" id="servers">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">// the fleet</h2>
+        <h2 class="section-title">The fleet</h2>
         <div class="filter-tabs">
-          <button class="filter-tab active" data-filter="all">all</button>
-          <button class="filter-tab" data-filter="mcp">mcp</button>
-          <button class="filter-tab" data-filter="soon">planned</button>
+          <button class="filter-tab active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="mcp">MCP</button>
+          <button class="filter-tab" data-filter="soon">Planned</button>
         </div>
       </div>
 
@@ -87,46 +75,46 @@
           <p class="card-desc">Social-media image generation (Gemini Nano Banana / gpt-image) and image style analysis. Two variants per call, returned inline.</p>
           <div class="card-footer">
             <span class="card-author">/mcp/bit-graphics</span>
-            <a href="/bit-graphics/docs" class="card-link">docs -></a>
+            <a href="/bit-graphics/docs" class="card-link">docs →</a>
           </div>
         </article>
 
         <article class="project-card" data-category="soon">
           <div class="card-header">
-            <div class="card-icon icon-green"><span>HB</span></div>
+            <div class="card-icon"><span>HB</span></div>
             <div class="card-meta"><span class="card-tag">mcp</span><span class="card-tag">planned</span></div>
           </div>
           <h3 class="card-title">heartbit</h3>
           <p class="card-desc">Market-pulse listening — read feeds and trends, distil audience clusters and content ideas the Bitroot way.</p>
           <div class="card-footer">
             <span class="card-author">bitroot</span>
-            <a href="/heartbit/docs" class="card-link">docs -></a>
+            <a href="/heartbit/docs" class="card-link">docs →</a>
           </div>
         </article>
 
         <article class="project-card" data-category="soon">
           <div class="card-header">
-            <div class="card-icon icon-purple"><span>TL</span></div>
+            <div class="card-icon"><span>TL</span></div>
             <div class="card-meta"><span class="card-tag">mcp</span><span class="card-tag">planned</span></div>
           </div>
           <h3 class="card-title">teamlife</h3>
           <p class="card-desc">Project-board tools — list, create and update tasks, post progress and attach screenshots, all attributed to your agent.</p>
           <div class="card-footer">
             <span class="card-author">bitroot</span>
-            <a href="/teamlife/docs" class="card-link">docs -></a>
+            <a href="/teamlife/docs" class="card-link">docs →</a>
           </div>
         </article>
 
         <article class="project-card" data-category="soon">
           <div class="card-header">
-            <div class="card-icon icon-orange"><span>+</span></div>
+            <div class="card-icon"><span>+</span></div>
             <div class="card-meta"><span class="card-tag">open</span></div>
           </div>
           <h3 class="card-title">your capability</h3>
           <p class="card-desc">Every server lives in one repo. Add a builder, register it, document it, push — Dokploy redeploys and the whole fleet grows.</p>
           <div class="card-footer">
             <span class="card-author">contribute</span>
-            <a href="https://github.com/bitroot-org/froots" class="card-link">github -></a>
+            <a href="https://github.com/bitroot-org/froots" class="card-link">GitHub →</a>
           </div>
         </article>
       </div>
@@ -137,7 +125,7 @@
     <div class="container">
       <div class="about-grid">
         <div class="about-content">
-          <h2 class="section-title">// about</h2>
+          <h2 class="section-title">About</h2>
           <p class="about-text"><span class="text-highlight">froots</span> are what grow when Bitroot plants ideas.</p>
           <p class="about-text">
             We kept building capabilities inside individual projects, then re-cloning repos and passing around keys every time a teammate or a new agent needed them. froots ends that: every useful thing we make becomes a hosted MCP server — one endpoint, keys server-side, access by revocable token.
@@ -165,13 +153,10 @@
     <div class="container">
       <div class="submit-card">
         <div class="submit-content">
-          <span class="submit-tag">$ froots --add-server</span>
+          <span class="submit-tag">Contribute</span>
           <h2 class="submit-title">Built a capability worth hosting?</h2>
           <p class="submit-text">Drop a server into the fleet — one file, one registry line, a docs page. Open a PR and it deploys for every token holder.</p>
-          <a href="https://github.com/bitroot-org/froots" class="btn btn-primary btn-lg"><span class="btn-text">Contribute on GitHub</span><span class="btn-arrow">-></span></a>
-        </div>
-        <div class="submit-decoration">
-          <div class="decoration-line"></div><div class="decoration-line"></div><div class="decoration-line"></div>
+          <a href="https://github.com/bitroot-org/froots" class="pill pill-solid">Contribute on GitHub</a>
         </div>
       </div>
     </div>
@@ -181,14 +166,14 @@
     <div class="container">
       <div class="footer-content">
         <div class="footer-brand">
-          <span class="footer-logo">[bitroot]</span>
+          <span class="footer-logo">bitroot</span>
           <span class="footer-copy">froots — hosted MCP fleet</span>
         </div>
         <div class="footer-links">
-          <a href="/docs">docs</a>
-          <a href="https://github.com/bitroot-org" target="_blank">github</a>
-          <a href="https://x.com/BitrootIndia" target="_blank">x</a>
-          <a href="/health">status</a>
+          <a href="/docs">Docs</a>
+          <a href="https://github.com/bitroot-org" target="_blank">GitHub</a>
+          <a href="https://x.com/BitrootIndia" target="_blank">X</a>
+          <a href="/health">Status</a>
         </div>
       </div>
     </div>
