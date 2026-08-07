@@ -106,17 +106,17 @@ a { color: inherit; }
 /* Ambient footage, contained on the right and screen-blended so the black
    of the frame drops out entirely and only the glow survives. */
 .hero-video {
-  position: absolute; top: 46%; right: clamp(0px, 4vw, 72px);
+  position: absolute; top: 45%; right: clamp(0px, 2vw, 48px);
   transform: translateY(-50%);
-  width: min(38vw, 520px); height: auto; aspect-ratio: 1 / 1;
+  width: min(50vw, 720px); height: auto; aspect-ratio: 1 / 1;
   object-fit: cover;
   z-index: 1; pointer-events: none;
-  opacity: 0.72;
+  opacity: 0.82;
   mix-blend-mode: screen;
   /* Tight enough that the frame's rectangle never reads — what survives is
      a contained orb of light, centred on the fruit rather than the frame. */
-  -webkit-mask-image: radial-gradient(circle at 54% 43%, #000 20%, transparent 50%);
-  mask-image: radial-gradient(circle at 54% 43%, #000 20%, transparent 50%);
+  -webkit-mask-image: radial-gradient(circle at 54% 43%, #000 25%, transparent 54%);
+  mask-image: radial-gradient(circle at 54% 43%, #000 25%, transparent 54%);
 }
 
 /* Auto margins top and bottom centre the copy in whatever space the rail
@@ -239,8 +239,8 @@ a { color: inherit; }
   /* Stacked, not side-by-side: the orb takes the upper half and the copy
      settles into the lower one, so nothing reads through the headline. */
   .hero-video {
-    top: 26%; right: 50%; transform: translate(50%, -50%);
-    width: min(74vw, 380px); opacity: 0.5;
+    top: 23%; right: 50%; transform: translate(50%, -50%);
+    width: min(92vw, 470px); opacity: 0.6;
   }
   .hero-copy { margin-top: auto; margin-bottom: 4vh; }
   .hero-subtitle { max-width: 100%; }
