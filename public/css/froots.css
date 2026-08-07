@@ -119,6 +119,13 @@ a { color: inherit; }
   mask-image: radial-gradient(circle at 54% 43%, #000 25%, transparent 54%);
 }
 
+/* The point cloud sits above the footage and below the copy — it reads as
+   a lattice around the glow rather than a separate object beside it. */
+.hero-field {
+  position: absolute; top: 0; left: 0;
+  z-index: 1; pointer-events: none;
+}
+
 /* Auto margins top and bottom centre the copy in whatever space the rail
    leaves, so it stays clear of the nav at any viewport height. */
 .hero-copy { position: relative; z-index: 2; max-width: 760px; margin: auto 0; }
