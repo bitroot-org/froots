@@ -55,11 +55,20 @@ jobs:
             exit 1
           fi
 
+          # The hook is a GitHub webhook receiver, not a bare trigger: it
+          # reads the push payload and compares the ref against the branch
+          # configured on the app. Posting an empty body answers
+          # 301 {"message":"Branch Not Match"} and deploys nothing.
+          #
           # Retry a couple of times: the tailnet route can still be settling
           # in the first seconds after `tailscale up`.
           for attempt in 1 2 3; do
             code=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' \
-              -X POST "$WEBHOOK" --max-time 30 || echo 000)
+              -X POST "$WEBHOOK" \
+              -H 'content-type: application/json' \
+              -H 'x-github-event: push' \
+              -d "{\"ref\":\"refs/heads/${GITHUB_REF_NAME}\"}" \
+              --max-time 40 || echo 000)
             echo "attempt $attempt -> HTTP $code"
             case "$code" in
               2*)
