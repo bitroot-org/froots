@@ -1,0 +1,120 @@
+name: Deploy to Dokploy
+
+# Dokploy's own "on push" autodeploy cannot work here: the panel lives on
+# the tailnet (a *.ts.net MagicDNS name resolving into 100.64.0.0/10) and
+# GitHub's webhook senders are on the public internet, so the push event has
+# nowhere to reach. This workflow closes the gap from the other side — the
+# runner joins the tailnet and calls the deploy webhook from inside it, so
+# Dokploy never has to be exposed.
+#
+# Required repository secrets:
+#   TS_OAUTH_CLIENT_ID   Tailscale OAuth client id
+#   TS_OAUTH_SECRET      Tailscale OAuth client secret
+#   DOKPLOY_WEBHOOK      full deploy URL including its token. A secret, not
+#                        a var: this repo is public and that URL on its own
+#                        triggers a production deploy.
+#
+# Optional — turns the run from fire-and-forget into a real build gate:
+#   DOKPLOY_URL          e.g. https://host:8443
+#   DOKPLOY_API_KEY      Dokploy API key
+#   DOKPLOY_APP_ID       application id to poll
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two deploys of the same branch race each other.
+concurrency:
+  group: dokploy-deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Join tailnet
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          # MagicDNS must be on: the panel's TLS cert is issued for the
+          # ts.net name, so reaching it by raw 100.x address would fail
+          # certificate verification.
+          args: --accept-dns=true
+
+      - name: Trigger deploy
+        env:
+          WEBHOOK: ${{ secrets.DOKPLOY_WEBHOOK }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK:-}" ]; then
+            echo "::error::DOKPLOY_WEBHOOK is not set"
+            exit 1
+          fi
+
+          # Retry a couple of times: the tailnet route can still be settling
+          # in the first seconds after `tailscale up`.
+          for attempt in 1 2 3; do
+            code=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' \
+              -X POST "$WEBHOOK" --max-time 30 || echo 000)
+            echo "attempt $attempt -> HTTP $code"
+            case "$code" in
+              2*)
+                echo "Deploy triggered."
+                cat /tmp/resp.txt || true
+                exit 0
+                ;;
+              000|5*)
+                sleep 10
+                ;;
+              *)
+                echo "::error::Dokploy rejected the trigger (HTTP $code)"
+                cat /tmp/resp.txt || true
+                exit 1
+                ;;
+            esac
+          done
+          echo "::error::Could not reach Dokploy after 3 attempts"
+          cat /tmp/resp.txt || true
+          exit 1
+
+      - name: Wait for the build to finish
+        # Deliberately not gated with `if: secrets.* != ''` — the secrets
+        # context is not available in step conditions, so the check lives
+        # inside the script and skips cleanly when unconfigured.
+        env:
+          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          APP_ID: ${{ secrets.DOKPLOY_APP_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DOKPLOY_API_KEY:-}" ] || [ -z "${APP_ID:-}" ] || [ -z "${DOKPLOY_URL:-}" ]; then
+            echo "::notice::Build-status polling not configured — the deploy"
+            echo "::notice::was triggered but this run cannot tell you whether"
+            echo "::notice::it succeeded. Set DOKPLOY_URL, DOKPLOY_API_KEY and"
+            echo "::notice::DOKPLOY_APP_ID to turn this into a real gate."
+            exit 0
+          fi
+
+          for i in $(seq 1 60); do
+            sleep 15
+            status=$(curl -sS -H "x-api-key: $DOKPLOY_API_KEY" \
+              "$DOKPLOY_URL/api/application.one?applicationId=$APP_ID" \
+              --max-time 20 | jq -r '.applicationStatus // "unknown"')
+            echo "[$i] status=$status"
+            case "$status" in
+              done)
+                echo "Build finished."
+                exit 0
+                ;;
+              error)
+                echo "::error::Dokploy reports a failed build"
+                exit 1
+                ;;
+            esac
+          done
+          echo "::error::Timed out waiting for the build"
+          exit 1
