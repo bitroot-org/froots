@@ -53,4 +53,6 @@ Clients (or the model driving them) just repeat the call with `provider` set to 
 
 - Generation takes **20–90s** depending on variant count; clients should allow long tool timeouts.
 - Model selection is server-side via env (`GEMINI_IMAGE_MODEL`, `OPENAI_IMAGE_MODEL`, `GEMINI_TEXT_MODEL`, `OPENAI_TEXT_MODEL`). Both `GEMINI_API_KEY` and `OPENAI_API_KEY` must be set for failover to work.
-- The local stdio twin of this server lives in the bit-graphics repo (`scripts/mcp-server.mjs`) — it writes files to disk instead of returning inline images, and its analysis uses the studio app's exact preset vocabulary.
+- Defaults: `gemini-3.1-flash-image` (Gemini) and `gpt-image-2.5-sunburst-2026-09-08` (OpenAI). Override either via env without a redeploy of the code.
+- Gemini image generation runs on the Interactions API (`ai.interactions.create` with `response_format: {type: "image"}`) via `@google/genai@2`, not the older `models.generateContent` + `responseModalities` path (still present in the SDK but deprecated). `analyze_image_style`'s Gemini vision path still uses `generateContent`, since that's text-out, not image-out, and remains fully supported.
+- The local stdio twin of this server lives in the bit-graphics repo (`scripts/mcp-server.mjs`) — it writes files to disk instead of returning inline images, and its analysis uses the studio app's exact preset vocabulary. If you update its provider SDKs too, note it's on the older `models.generateContent` image path unless you port this change over.

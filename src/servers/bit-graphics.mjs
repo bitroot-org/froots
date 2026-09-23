@@ -9,8 +9,10 @@ import { z } from "zod";
  * file paths — clients like Claude Desktop render them inline.
  */
 
-const GEMINI_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image-preview";
-const OPENAI_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2-2026-04-21";
+// gemini-3.1-flash-image-preview graduated out of preview; gpt-image-2.5-sunburst
+// is the newest dated OpenAI snapshot as of the @google/genai@2 / openai@7 bump.
+const GEMINI_MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image";
+const OPENAI_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2.5-sunburst-2026-09-08";
 const ANALYSIS_MODEL = process.env.GEMINI_TEXT_MODEL || "gemini-2.5-flash";
 const OPENAI_ANALYSIS_MODEL = process.env.OPENAI_TEXT_MODEL || "gpt-4.1-mini";
 
@@ -33,29 +35,34 @@ const FORMATS = {
   "custom-widescreen": { channel: "custom", label: "Widescreen 16:9", ratio: "16:9" },
 };
 
+// Uses the Interactions API (ai.interactions.create), the current
+// documented surface for Gemini image generation — the older
+// ai.models.generateContent + responseModalities/imageConfig path still
+// works but both fields are marked deprecated in @google/genai@2.
+// response_format is the non-deprecated way to ask for an image; the
+// SDK's own README examples still show response_modalities, but that
+// field carries an explicit @deprecated notice in the 2.24.0 types, so
+// this follows the types over the prose.
 async function generateGemini(prompt, ratio, count) {
-  const { GoogleGenAI, Modality } = await import("@google/genai");
+  const { GoogleGenAI } = await import("@google/genai");
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not configured on the server");
   const ai = new GoogleGenAI({ apiKey });
   const runs = Array.from({ length: count }, () =>
-    ai.models.generateContent({
+    ai.interactions.create({
       model: GEMINI_MODEL,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { responseModalities: [Modality.IMAGE], imageConfig: { aspectRatio: ratio } },
+      input: prompt,
+      response_format: { type: "image", aspect_ratio: ratio },
     }).then((res) => {
-      const bufs = [];
-      for (const part of res.candidates?.[0]?.content?.parts ?? []) {
-        if (part.inlineData?.data) bufs.push(part.inlineData.data);
-      }
-      return bufs;
+      const img = res.output_image;
+      return img?.data ? [{ data: img.data, mimeType: img.mime_type || "image/png" }] : [];
     }),
   );
   // Completion order: fastest variant first.
   const images = [];
   const errors = [];
   await Promise.all(runs.map((run) =>
-    run.then((bufs) => images.push(...bufs)).catch((err) => errors.push(err)),
+    run.then((imgs) => images.push(...imgs)).catch((err) => errors.push(err)),
   ));
   if (!images.length) throw errors[0] ?? new Error("Gemini returned no image data");
   return images;
@@ -75,7 +82,10 @@ async function generateOpenAI(prompt, ratio, count) {
   const res = await client.images.generate({
     model: OPENAI_MODEL, prompt, n: count, size: openaiSize(ratio),
   });
-  const images = (res.data ?? []).filter((d) => d.b64_json).map((d) => d.b64_json);
+  // GPT image models return b64_json PNG by default (no response_format needed).
+  const images = (res.data ?? [])
+    .filter((d) => d.b64_json)
+    .map((d) => ({ data: d.b64_json, mimeType: "image/png" }));
   if (!images.length) throw new Error("OpenAI returned no image data");
   return images;
 }
@@ -223,7 +233,7 @@ export function buildBitGraphicsServer() {
               order: "fastest first",
             }, null, 2),
           },
-          ...images.map((data) => ({ type: "image", data, mimeType: "image/png" })),
+          ...images.map(({ data, mimeType }) => ({ type: "image", data, mimeType })),
         ],
       };
     },
