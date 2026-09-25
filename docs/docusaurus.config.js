@@ -11,6 +11,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
  */
 const SERVERS = [
   {id: 'bit-graphics', label: 'bit-graphics'},
+  {id: 'bit-voice', label: 'bit-voice'},
   {id: 'heartbit', label: 'heartbit'},
   {id: 'teamlife', label: 'teamlife'},
 ];

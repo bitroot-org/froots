@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { buildBitGraphicsServer } from "./servers/bit-graphics.mjs";
+import { buildBitVoiceServer } from "./servers/bit-voice.mjs";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = join(rootDir, "public");
@@ -13,6 +14,7 @@ const docsDir = join(rootDir, "docs", "build");
  *
  * One process, one endpoint per capability:
  *   POST /mcp/bit-graphics   (streamable HTTP MCP, stateless)
+ *   POST /mcp/bit-voice
  *   GET  /health
  *
  * Auth: Authorization: Bearer <token>, tokens from FROOTS_TOKENS
@@ -21,6 +23,7 @@ const docsDir = join(rootDir, "docs", "build");
 
 const REGISTRY = {
   "bit-graphics": buildBitGraphicsServer,
+  "bit-voice": buildBitVoiceServer,
 };
 
 const tokens = new Set(
