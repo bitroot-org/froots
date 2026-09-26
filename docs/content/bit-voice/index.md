@@ -30,11 +30,29 @@ MCP carries tool calls, not live audio. So a conversation takes two steps:
     const call = await BitVoice.connect(ws_url, {
       onState: (s) => console.log(s),        // connecting | live | ended | error
       onSpeaking: (on) => npc.talking = on,  // animate the character's mouth
+      onTranscript: (line) => {              // each line as it is spoken
+        if (line.final) chat.add(line.role, line.text);
+      },
     });
     // call.mute(true); call.setVolume(0.8); call.hangup();
   };
 </script>
 ```
+
+### Live transcript
+
+During the call, `onTranscript` receives every line as it is spoken:
+
+```js
+{ role: "agent" | "user", text: "…", turn: 3, final: true, interrupted: false }
+```
+
+- `turn` is the line's position in the session transcript, so it matches `get_voice_session` exactly.
+- `final: false` lines are an early preview of what the person is saying. The same `turn` comes again with `final: true` when they finish. Act only on final lines.
+- `interrupted: true` on an agent line means the person talked over it. `text` is what was actually said before the stop.
+- `get_voice_session` also shows the transcript growing while the session is `live`. `duration_sec` and `cost_inr` are filled in when it ends.
+
+Needs client.js 1.1.0 or later (`BitVoice.version`).
 
 Keep the froots token (or the voice API key) on your server. Only the `ws_url` goes to the browser: it is signed, single-use and short-lived. Call `connect()` from a click or key press, because browsers only allow the microphone after a user gesture.
 
@@ -70,7 +88,7 @@ Returns `session_id`, `ws_url`, `connect_by` and a ready `embed` snippet.
 
 ### `get_voice_session`
 
-`session_id` → `status` (`created`, `live`, `ended`, `expired`), `result.transcript`, `result.duration_sec`, `result.cost_inr`, your `metadata`. For Aarav it adds `crm`: outcome, summary, lead score, qualification and any booked meeting, about 30 seconds after the call ends.
+`session_id` → `status` (`created`, `live`, `ended`, `expired`), `result.transcript` (grows during a live session), `result.duration_sec`, `result.cost_inr`, your `metadata`. For Aarav it adds `crm`: outcome, summary, lead score, qualification and any booked meeting, about 30 seconds after the call ends.
 
 ### `speak`
 
